@@ -83,6 +83,7 @@ Jieping stores recent recording history in `%LOCALAPPDATA%\Jieping\recording-his
 - Trimmed MP4 copies, GIF export, and in-session recording history.
 - Persistent local recording history.
 - Settings language selector for English and Chinese UI labels.
+- Fixed-size polished main window layout with grouped recording, settings, post-processing, history, update, and diagnostics sections.
 - Self-contained Windows x64 package, signing, and update manifest scripts.
 - Local crash report opt-in.
 

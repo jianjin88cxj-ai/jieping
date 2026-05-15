@@ -1,5 +1,31 @@
 # Validation Notes
 
+## 2026-05-16 - Main Window UI Redesign
+
+Scope verified:
+
+- Changed the main window to a fixed 1080 x 720 layout with `ResizeMode=CanMinimize` so it cannot be stretched horizontally.
+- Replaced the long single-column form with a two-column desktop tool layout.
+- Added card-style grouping for recording mode, target state, status, video settings, capture options, post-processing, history, updates, and diagnostics.
+- Removed the default WPF tab layout after screenshot verification showed wrapped tabs and visual instability.
+- Kept the English/Chinese language selector visible in the header.
+
+Commands run:
+
+```powershell
+dotnet build .\Jieping.slnx
+```
+
+Result:
+
+- Build succeeded with 0 warnings and 0 errors.
+
+Launch and visual check:
+
+- Started `Jieping.App\bin\Debug\net8.0-windows\Jieping.App.exe`.
+- Captured the redesigned fixed-size main window at `artifacts\ui-redesign-main-window-v2.png`.
+- Confirmed the window captured at `1080 x 720` and the primary controls rendered without horizontal stretching.
+
 ## 2026-05-15 - Settings Language Selector
 
 Scope verified:
