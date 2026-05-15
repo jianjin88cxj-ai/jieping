@@ -4,7 +4,7 @@
 
 Scope verified:
 
-- Added a Settings language selector with English and Chinese options.
+- Added a first-viewport header Settings language selector with English and Chinese options.
 - Added ViewModel-backed localized UI text lookup.
 - Converted the main window's primary visible labels and action buttons from hardcoded English to language-aware bindings.
 - Localized common recording, update, diagnostics, and history status messages.

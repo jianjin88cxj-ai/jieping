@@ -34,31 +34,38 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <StackPanel>
-                <TextBlock Text="Jieping" FontSize="26" FontWeight="SemiBold" />
-                <TextBlock Text="{Binding [AppSubtitle]}" Foreground="#59636E" Margin="0,4,0,0" />
-            </StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="Jieping" FontSize="26" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding [AppSubtitle]}" Foreground="#59636E" Margin="0,4,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            MinWidth="150"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="16,0,0,0">
+                    <TextBlock Text="{Binding [Settings]}"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Right" />
+                    <ComboBox Width="150"
+                              Margin="0,6,0,0"
+                              ItemsSource="{Binding LanguageOptions}"
+                              SelectedItem="{Binding SelectedLanguage}"
+                              DisplayMemberPath="DisplayName"
+                              IsEnabled="{Binding CanChangeTarget}" />
+                </StackPanel>
+            </Grid>
 
             <ScrollViewer Grid.Row="1"
                           Margin="0,18,0,0"
                           VerticalScrollBarVisibility="Auto">
             <StackPanel>
-                <TextBlock Text="{Binding [Settings]}" Style="{StaticResource SectionTitle}" />
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="120" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{Binding [Language]}" VerticalAlignment="Center" />
-                    <ComboBox Grid.Column="1"
-                              Width="180"
-                              HorizontalAlignment="Left"
-                              ItemsSource="{Binding LanguageOptions}"
-                              SelectedItem="{Binding SelectedLanguage}"
-                              DisplayMemberPath="DisplayName"
-                              IsEnabled="{Binding CanChangeTarget}" />
-                </Grid>
-
                 <TextBlock Text="{Binding [RecordingMode]}" Style="{StaticResource SectionTitle}" />
                 <WrapPanel>
                     <Button Content="{Binding [Region]}" Command="{Binding SelectModeCommand}" CommandParameter="Region" />

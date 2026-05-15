@@ -99,7 +99,7 @@ Future option:
 The main window provides:
 
 - Recording mode buttons: Region, Window, Full Screen.
-- Settings language selector: English, Chinese.
+- Header settings language selector: English, Chinese.
 - Current target summary.
 - State and elapsed time.
 - Recording preset selector.
