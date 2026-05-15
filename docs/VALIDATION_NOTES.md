@@ -1,5 +1,29 @@
 # Validation Notes
 
+## 2026-05-16 - App Icon And Window Recording Visibility
+
+Scope verified:
+
+- Generated a custom Jieping app icon for the screen recorder.
+- Removed the chroma-key background and produced `Assets\AppIcon.png` with transparent corners.
+- Generated `Assets\AppIcon.ico` with Windows icon sizes.
+- Configured the WPF project `ApplicationIcon` and main window `Icon`.
+- Fixed Window recording mode so it does not hide the Jieping main window during recording.
+- Kept Region and Full Screen modes eligible for main-window hiding to avoid self-capture.
+
+Commands run:
+
+```powershell
+dotnet build .\Jieping.slnx
+dotnet run --project $env:TEMP\jieping-window-mode-shell-smoke\WindowShellSmoke.csproj
+```
+
+Result:
+
+- Build succeeded with 0 warnings and 0 errors.
+- Window mode shell smoke passed: Window mode start/stop emitted no main-window suppression events.
+- Icon PNG validation confirmed RGBA output with transparent corner alpha.
+
 ## 2026-05-16 - Main Window UI Redesign
 
 Scope verified:

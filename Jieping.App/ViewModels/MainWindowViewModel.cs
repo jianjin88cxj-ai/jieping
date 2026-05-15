@@ -59,6 +59,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _diagnosticsStatusMessage = "Crash reports are disabled.";
     private UpdateCheckResult? _lastUpdateCheckResult;
     private CancellationTokenSource? _countdownTokenSource;
+    private bool _isRecordingShellSuppressed;
 
     public MainWindowViewModel(
         Func<CaptureRegion?>? selectRegion = null,
@@ -757,7 +758,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         try
         {
             State = RecordingState.Countdown;
-            RecordingShellSuppressionRequested?.Invoke(true);
+            SetRecordingShellSuppression(Target.Mode != RecordingMode.Window);
             await Task.Delay(TimeSpan.FromMilliseconds(250), countdownTokenSource.Token);
             for (var remaining = RecordingCountdownSeconds; remaining > 0; remaining--)
             {
@@ -798,13 +799,13 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
         catch (OperationCanceledException)
         {
-            RecordingShellSuppressionRequested?.Invoke(false);
+            SetRecordingShellSuppression(false);
             State = RecordingState.TargetSelected;
             StatusMessage = Text("RecordingCountdownCanceled");
         }
         catch (Exception ex)
         {
-            RecordingShellSuppressionRequested?.Invoke(false);
+            SetRecordingShellSuppression(false);
             _elapsedTimer.Stop();
             _recordingStartedAt = null;
             _recordingElapsedBeforeCurrentRun = TimeSpan.Zero;
@@ -996,14 +997,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             AddHistoryItem(LastOutputPath, "MP4", $"{ModeLabel}, {FrameRate} FPS");
             _activeSession = null;
             State = RecordingState.Completed;
-            RecordingShellSuppressionRequested?.Invoke(false);
+            SetRecordingShellSuppression(false);
             StatusMessage = Text("RecordingFinalized");
         }
         catch (Exception ex)
         {
             _activeSession = null;
             State = RecordingState.Error;
-            RecordingShellSuppressionRequested?.Invoke(false);
+            SetRecordingShellSuppression(false);
             StatusMessage = ex.Message;
         }
     }
@@ -1107,6 +1108,17 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
         _recordingElapsedBeforeCurrentRun += DateTimeOffset.Now - _recordingStartedAt.Value;
         _recordingStartedAt = null;
+    }
+
+    private void SetRecordingShellSuppression(bool suppress)
+    {
+        if (_isRecordingShellSuppressed == suppress)
+        {
+            return;
+        }
+
+        _isRecordingShellSuppressed = suppress;
+        RecordingShellSuppressionRequested?.Invoke(suppress);
     }
 
     private void RefreshLocalizedProperties()

@@ -42,6 +42,7 @@ Phase 4 post-processing has started:
 - Recording history is implemented and view-model-smoke-tested.
 - English and Chinese language selection is implemented and view-model-smoke-tested.
 - The main window has been redesigned as a fixed-size professional desktop tool layout with grouped recording controls and settings cards.
+- Custom application icon is implemented for the executable and main window.
 
 ## 3. Recording Modes
 
@@ -100,6 +101,7 @@ Future option:
 The main window provides:
 
 - A fixed-size, non-resizable desktop tool window to avoid excessive horizontal whitespace.
+- Custom Jieping app icon in the executable and window title bar.
 - Recording mode buttons: Region, Window, Full Screen.
 - Header settings language selector: English, Chinese.
 - Current target summary.

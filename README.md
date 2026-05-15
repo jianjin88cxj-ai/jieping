@@ -77,6 +77,7 @@ Jieping stores recent recording history in `%LOCALAPPDATA%\Jieping\recording-his
 ## Current Scope
 
 - Region, Window, and Full Screen recording.
+- Custom Jieping Windows app icon.
 - FFmpeg-backed H.264 MP4 output.
 - Optional system audio and microphone recording.
 - Global hotkeys, countdown, pause/resume, cursor capture, click highlight, and watermark.
