@@ -1,0 +1,38 @@
+<Window x:Class="Jieping.App.Overlays.RegionSelectionOverlay"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent"
+        Topmost="True"
+        ShowInTaskbar="False"
+        Focusable="True"
+        Cursor="Cross"
+        WindowStartupLocation="Manual"
+        KeyDown="OnKeyDown"
+        MouseLeftButtonDown="OnMouseLeftButtonDown"
+        MouseLeftButtonUp="OnMouseLeftButtonUp"
+        MouseMove="OnMouseMove"
+        MouseRightButtonDown="OnMouseRightButtonDown"
+        SourceInitialized="OnSourceInitialized">
+    <Canvas x:Name="OverlayCanvas" Background="#01000000">
+        <Rectangle x:Name="SelectionRectangle"
+                   Visibility="Collapsed"
+                   Fill="#22FFFFFF"
+                   Stroke="#2D8CFF"
+                   StrokeThickness="2"
+                   StrokeDashArray="4 2" />
+        <Border x:Name="SizeBadge"
+                Visibility="Collapsed"
+                Background="#D920242A"
+                BorderBrush="#FFFFFFFF"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="8,4">
+            <TextBlock x:Name="SizeText"
+                       Foreground="White"
+                       FontWeight="SemiBold" />
+        </Border>
+    </Canvas>
+</Window>

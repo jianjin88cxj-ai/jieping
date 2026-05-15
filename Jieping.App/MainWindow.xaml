@@ -1,0 +1,468 @@
+<Window x:Class="Jieping.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Jieping"
+        Height="700"
+        MinHeight="620"
+        Width="520"
+        MinWidth="480"
+        WindowStartupLocation="CenterScreen"
+        Background="#F6F8FA">
+    <Window.Resources>
+        <Style TargetType="Button">
+            <Setter Property="MinHeight" Value="36" />
+            <Setter Property="Padding" Value="14,6" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+        </Style>
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#20242A" />
+        </Style>
+        <Style x:Key="SectionTitle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,18,0,8" />
+        </Style>
+    </Window.Resources>
+
+    <Border Padding="24">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <TextBlock Text="Jieping" FontSize="26" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding [AppSubtitle]}" Foreground="#59636E" Margin="0,4,0,0" />
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1"
+                          Margin="0,18,0,0"
+                          VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="{Binding [Settings]}" Style="{StaticResource SectionTitle}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{Binding [Language]}" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              Width="180"
+                              HorizontalAlignment="Left"
+                              ItemsSource="{Binding LanguageOptions}"
+                              SelectedItem="{Binding SelectedLanguage}"
+                              DisplayMemberPath="DisplayName"
+                              IsEnabled="{Binding CanChangeTarget}" />
+                </Grid>
+
+                <TextBlock Text="{Binding [RecordingMode]}" Style="{StaticResource SectionTitle}" />
+                <WrapPanel>
+                    <Button Content="{Binding [Region]}" Command="{Binding SelectModeCommand}" CommandParameter="Region" />
+                    <Button Content="{Binding [Window]}" Command="{Binding SelectModeCommand}" CommandParameter="Window" />
+                    <Button Content="{Binding [FullScreen]}" Command="{Binding SelectModeCommand}" CommandParameter="FullScreen" />
+                </WrapPanel>
+
+                <TextBlock Text="{Binding [CurrentTarget]}" Style="{StaticResource SectionTitle}" />
+                <Border Background="White" BorderBrush="#D7DCE1" BorderThickness="1" CornerRadius="6" Padding="14">
+                    <StackPanel>
+                        <TextBlock Text="{Binding TargetSummary}" FontWeight="SemiBold" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="{Binding [State]}" Foreground="#59636E" />
+                            <TextBlock Text=": " Foreground="#59636E" />
+                            <TextBlock Text="{Binding StateLabel}" Foreground="#59636E" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <TextBlock Text="{Binding [Elapsed]}" Foreground="#59636E" />
+                            <TextBlock Text=": " Foreground="#59636E" />
+                            <TextBlock Text="{Binding ElapsedTime}" Foreground="#59636E" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock Text="{Binding [VideoSettings]}" Style="{StaticResource SectionTitle}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="{Binding [Preset]}" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              Width="220"
+                              HorizontalAlignment="Left"
+                              ItemsSource="{Binding RecordingPresets}"
+                              SelectedItem="{Binding SelectedRecordingPreset}"
+                              DisplayMemberPath="DisplayName"
+                              IsEnabled="{Binding CanChangeTarget}" />
+
+                    <TextBlock Grid.Row="1" Text="{Binding [FrameRate]}" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <ComboBox Grid.Row="1"
+                              Grid.Column="1"
+                              Width="140"
+                              HorizontalAlignment="Left"
+                              Margin="0,12,0,0"
+                              ItemsSource="{Binding FrameRateOptions}"
+                              SelectedItem="{Binding FrameRate}"
+                              IsEnabled="{Binding CanChangeTarget}" />
+
+                    <TextBlock Grid.Row="2" Text="{Binding [Quality]}" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <ComboBox Grid.Row="2"
+                              Grid.Column="1"
+                              Width="140"
+                              HorizontalAlignment="Left"
+                              Margin="0,12,0,0"
+                              ItemsSource="{Binding QualityOptions}"
+                              SelectedItem="{Binding Quality}"
+                              IsEnabled="{Binding CanChangeTarget}" />
+
+                    <TextBlock Grid.Row="3" Text="{Binding [Bitrate]}" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <ComboBox Grid.Row="3"
+                              Grid.Column="1"
+                              Width="140"
+                              HorizontalAlignment="Left"
+                              Margin="0,12,0,0"
+                              ItemsSource="{Binding VideoBitrateOptions}"
+                              SelectedItem="{Binding SelectedVideoBitrate}"
+                              DisplayMemberPath="DisplayName"
+                              IsEnabled="{Binding CanChangeTarget}" />
+
+                    <TextBlock Grid.Row="4" Text="{Binding [Display]}" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <ComboBox Grid.Row="4"
+                              Grid.Column="1"
+                              Width="280"
+                              HorizontalAlignment="Left"
+                              Margin="0,12,0,0"
+                              ItemsSource="{Binding Displays}"
+                              SelectedItem="{Binding SelectedDisplay}"
+                              DisplayMemberPath="DisplayName"
+                              IsEnabled="{Binding CanSelectDisplay}" />
+
+                    <TextBlock Grid.Row="5" Text="{Binding [SaveTo]}" VerticalAlignment="Top" Margin="0,14,0,0" />
+                    <Grid Grid.Row="5" Grid.Column="1" Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Text="{Binding OutputDirectory}"
+                                   TextWrapping="Wrap"
+                                   VerticalAlignment="Center"
+                                   Foreground="#59636E" />
+                        <Button Grid.Column="1"
+                                Content="{Binding [Browse]}"
+                                Command="{Binding BrowseOutputDirectoryCommand}"
+                                Margin="8,0,0,0" />
+                    </Grid>
+
+                    <TextBlock Grid.Row="6" Text="{Binding [Audio]}" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <StackPanel Grid.Row="6" Grid.Column="1" Margin="0,12,0,0">
+                        <CheckBox Content="{Binding [RecordSystemAudio]}"
+                                  IsChecked="{Binding CaptureSystemAudio}"
+                                  IsEnabled="{Binding CanChangeTarget}" />
+                        <CheckBox Content="{Binding [RecordMicrophone]}"
+                                  IsChecked="{Binding CaptureMicrophoneAudio}"
+                                  IsEnabled="{Binding CanUseMicrophoneAudio}"
+                                  Margin="0,8,0,0" />
+                        <ComboBox Width="260"
+                                  HorizontalAlignment="Left"
+                                  ItemsSource="{Binding MicrophoneDevices}"
+                                  SelectedItem="{Binding SelectedMicrophoneDevice}"
+                                  DisplayMemberPath="DisplayName"
+                                  IsEnabled="{Binding CanSelectMicrophoneDevice}"
+                                  Margin="0,8,0,0" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="7" Text="{Binding [Pointer]}" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <StackPanel Grid.Row="7" Grid.Column="1" Margin="0,12,0,0">
+                        <CheckBox Content="{Binding [RecordMouseCursor]}"
+                                  IsChecked="{Binding CaptureCursor}"
+                                  IsEnabled="{Binding CanChangeTarget}" />
+                        <CheckBox Content="{Binding [HighlightMouseClicks]}"
+                                  IsChecked="{Binding HighlightMouseClicks}"
+                                  IsEnabled="{Binding CanChangeTarget}"
+                                  Margin="0,8,0,0" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Row="8" Text="{Binding [Watermark]}" VerticalAlignment="Center" Margin="0,12,0,0" />
+                    <StackPanel Grid.Row="8" Grid.Column="1" Margin="0,12,0,0">
+                        <CheckBox Content="{Binding [AddTextWatermark]}"
+                                  IsChecked="{Binding IncludeWatermark}"
+                                  IsEnabled="{Binding CanChangeTarget}" />
+                        <TextBox Text="{Binding WatermarkText, UpdateSourceTrigger=PropertyChanged}"
+                                 IsEnabled="{Binding CanEditWatermarkText}"
+                                 Width="220"
+                                 HorizontalAlignment="Left"
+                                 MinHeight="32"
+                                 Padding="8,4"
+                                 VerticalContentAlignment="Center"
+                                 Margin="0,8,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="{Binding [Status]}" Style="{StaticResource SectionTitle}" />
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Foreground="#59636E" />
+                <TextBlock Text="{Binding LastOutputPath, TargetNullValue=''}"
+                           TextWrapping="Wrap"
+                           Foreground="#59636E"
+                           Margin="0,8,0,0" />
+                <WrapPanel Margin="0,10,0,0">
+                    <Button Content="{Binding [OpenFile]}" Command="{Binding OpenLastFileCommand}" />
+                    <Button Content="{Binding [OpenFolder]}" Command="{Binding OpenLastFolderCommand}" />
+                </WrapPanel>
+
+                <TextBlock Text="{Binding [PostProcessing]}" Style="{StaticResource SectionTitle}" />
+                <TextBlock Text="{Binding [TrimCopy]}" FontWeight="SemiBold" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="110" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="100" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="{Binding [StartSeconds]}" VerticalAlignment="Center" />
+                    <TextBox Grid.Column="1"
+                             Text="{Binding TrimStartSeconds, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding CanTrimLastOutput}"
+                             MinHeight="32"
+                             Padding="8,4"
+                             VerticalContentAlignment="Center" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding [EndSeconds]}"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0" />
+                    <TextBox Grid.Column="3"
+                             Text="{Binding TrimEndSeconds, UpdateSourceTrigger=PropertyChanged}"
+                             IsEnabled="{Binding CanTrimLastOutput}"
+                             MinHeight="32"
+                             Padding="8,4"
+                             VerticalContentAlignment="Center" />
+                    <Button Grid.Row="1"
+                            Grid.ColumnSpan="5"
+                            Content="{Binding [SaveTrimmedCopy]}"
+                            Command="{Binding TrimLastOutputCommand}"
+                            HorizontalAlignment="Left"
+                            Margin="0,10,0,0" />
+                </Grid>
+
+                <TextBlock Text="{Binding [GifExport]}" FontWeight="SemiBold" Margin="0,16,0,0" />
+                <Grid Margin="0,8,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="90" />
+                        <ColumnDefinition Width="80" />
+                        <ColumnDefinition Width="90" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="{Binding [Fps]}" VerticalAlignment="Center" />
+                    <ComboBox Grid.Column="1"
+                              ItemsSource="{Binding GifFrameRateOptions}"
+                              SelectedItem="{Binding GifFrameRate}"
+                              IsEnabled="{Binding CanExportGif}"
+                              MinHeight="32" />
+                    <TextBlock Grid.Column="2"
+                               Text="{Binding [Width]}"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0" />
+                    <ComboBox Grid.Column="3"
+                              ItemsSource="{Binding GifWidthOptions}"
+                              SelectedItem="{Binding GifWidth}"
+                              IsEnabled="{Binding CanExportGif}"
+                              MinHeight="32" />
+                    <StackPanel Grid.Row="1"
+                                Grid.ColumnSpan="5"
+                                Orientation="Horizontal"
+                                Margin="0,10,0,0">
+                        <Button Content="{Binding [ExportGif]}" Command="{Binding ExportGifCommand}" />
+                        <Button Content="{Binding [OpenGif]}" Command="{Binding OpenLastGifCommand}" />
+                    </StackPanel>
+                    <TextBlock Grid.Row="2"
+                               Grid.ColumnSpan="5"
+                               Text="{Binding LastGifOutputPath, TargetNullValue=''}"
+                               TextWrapping="Wrap"
+                               Foreground="#59636E"
+                               Margin="0,8,0,0" />
+                </Grid>
+
+                <TextBlock Text="{Binding [RecordingHistory]}" Style="{StaticResource SectionTitle}" />
+                <DockPanel Margin="0,0,0,4">
+                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                        <TextBlock Text="{Binding RecordingHistory.Count}"
+                                   Foreground="#59636E"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text=" "
+                                   Foreground="#59636E"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{Binding [RecentItems]}"
+                                   Foreground="#59636E"
+                                   VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Button Content="{Binding [Clear]}"
+                            Command="{Binding ClearHistoryCommand}"
+                            HorizontalAlignment="Right"
+                            DockPanel.Dock="Right"
+                            Margin="8,0,0,0" />
+                </DockPanel>
+                <ListBox ItemsSource="{Binding RecordingHistory}"
+                         MinHeight="88"
+                         MaxHeight="180"
+                         BorderBrush="#D7DCE1"
+                         BorderThickness="1"
+                         Background="White">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="4,6">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="{Binding FileName}"
+                                               FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="{Binding Details}"
+                                               Foreground="#59636E"
+                                               TextTrimming="CharacterEllipsis"
+                                               Margin="0,3,0,0" />
+                                    <TextBlock Text="{Binding CreatedAtDisplay, StringFormat={}{0}}"
+                                               Foreground="#59636E"
+                                               FontSize="11"
+                                               Margin="0,3,0,0" />
+                                </StackPanel>
+                                <StackPanel Grid.Column="1"
+                                            Orientation="Horizontal"
+                                            VerticalAlignment="Center"
+                                            Margin="10,0,0,0">
+                                    <TextBlock Text="{Binding ArtifactType}"
+                                               Foreground="#59636E"
+                                               VerticalAlignment="Center"
+                                               Margin="0,0,8,0" />
+                                    <Button Content="{Binding DataContext[Open], RelativeSource={RelativeSource AncestorType=Window}}"
+                                            Command="{Binding DataContext.OpenHistoryFileCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}" />
+                                    <Button Content="{Binding DataContext[Folder], RelativeSource={RelativeSource AncestorType=Window}}"
+                                            Command="{Binding DataContext.OpenHistoryFolderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            Margin="0" />
+                                </StackPanel>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <TextBlock Text="{Binding [Updates]}" Style="{StaticResource SectionTitle}" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="120" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Text="{Binding [Current]}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding CurrentVersion}"
+                               Foreground="#59636E"
+                               VerticalAlignment="Center" />
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding [Manifest]}"
+                               VerticalAlignment="Center"
+                               Margin="0,10,0,0" />
+                    <TextBox Grid.Row="1"
+                             Grid.Column="1"
+                             Text="{Binding UpdateManifestLocation, UpdateSourceTrigger=PropertyChanged}"
+                             MinHeight="32"
+                             Padding="8,4"
+                             VerticalContentAlignment="Center"
+                             Margin="0,10,0,0" />
+
+                    <StackPanel Grid.Row="2"
+                                Grid.ColumnSpan="2"
+                                Margin="0,10,0,0">
+                        <WrapPanel>
+                            <Button Content="{Binding [CheckForUpdates]}" Command="{Binding CheckForUpdatesCommand}" />
+                            <Button Content="{Binding [DownloadUpdate]}" Command="{Binding DownloadUpdatePackageCommand}" />
+                            <Button Content="{Binding [OpenDownloadedPackage]}" Command="{Binding OpenDownloadedUpdatePackageCommand}" />
+                            <Button Content="{Binding [OpenDownloadPage]}" Command="{Binding OpenUpdatePackageCommand}" />
+                        </WrapPanel>
+                        <TextBlock Text="{Binding UpdateStatusMessage}"
+                                   TextWrapping="Wrap"
+                                   Foreground="#59636E"
+                                   Margin="0,8,0,0" />
+                        <TextBlock Text="{Binding DownloadedUpdatePackagePath, TargetNullValue=''}"
+                                   TextWrapping="Wrap"
+                                   Foreground="#59636E"
+                                   Margin="0,6,0,0" />
+                    </StackPanel>
+                </Grid>
+
+                <TextBlock Text="{Binding [Diagnostics]}" Style="{StaticResource SectionTitle}" />
+                <StackPanel>
+                    <CheckBox Content="{Binding [SaveCrashReportsLocally]}"
+                              IsChecked="{Binding AllowCrashReports}" />
+                    <TextBlock Text="{Binding [CrashReportsHelp]}"
+                               TextWrapping="Wrap"
+                               Foreground="#59636E"
+                               Margin="0,6,0,0" />
+                    <TextBlock Text="{Binding CrashReportDirectory}"
+                               TextWrapping="Wrap"
+                               Foreground="#59636E"
+                               Margin="0,6,0,0" />
+                    <WrapPanel Margin="0,10,0,0">
+                        <Button Content="{Binding [OpenCrashReportsFolder]}"
+                                Command="{Binding OpenCrashReportFolderCommand}" />
+                    </WrapPanel>
+                    <TextBlock Text="{Binding DiagnosticsStatusMessage}"
+                               TextWrapping="Wrap"
+                               Foreground="#59636E"
+                               Margin="0,8,0,0" />
+                </StackPanel>
+            </StackPanel>
+            </ScrollViewer>
+
+            <Grid Grid.Row="2" Margin="0,20,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Content="{Binding [SelectTarget]}" Command="{Binding SelectTargetCommand}" HorizontalAlignment="Left" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="{Binding [StartRecording]}" Command="{Binding StartRecordingCommand}" />
+                    <Button Content="{Binding PauseResumeLabel}" Command="{Binding PauseResumeCommand}" />
+                    <Button Content="{Binding StopRecordingLabel}" Command="{Binding StopRecordingCommand}" Margin="0" />
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
