@@ -1,5 +1,31 @@
 # Validation Notes
 
+## 2026-05-16 - Region Recording Real UI Regression
+
+Scope verified:
+
+- Reproduced the risky path behind the user report: Region mode starts recording after selecting a screen rectangle.
+- Changed shell suppression so Region and Window modes keep the main window visible during recording.
+- Full Screen remains the only mode that can hide the main window to avoid recording itself.
+- Verified the real WPF UI path: launch app, select Region target, drag a region, start recording, stop recording from the visible main window.
+
+Commands run:
+
+```powershell
+dotnet build .\Jieping.slnx
+dotnet run --project $env:TEMP\jieping-region-window-shell-smoke\ShellSmoke.csproj
+dotnet run --project $env:TEMP\jieping-real-region-recording-smoke\RealRegionSmoke.csproj
+ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height,avg_frame_rate -show_entries format=duration -of default=nw=1 <mp4>
+ffmpeg -v error -i <mp4> -f null -
+```
+
+Result:
+
+- Build succeeded with 0 warnings and 0 errors.
+- Region/window shell smoke passed: Region and Window emitted no main-window suppression events; Full Screen emitted hide then restore.
+- Real recorder service Region MP4 passed decode: `320 x 240`, H.264, duration `2.600000`.
+- Real WPF UI Region smoke passed: main window remained visible after stop, output `C:\Users\Administrator\Videos\Jieping\Recording_2026-05-16_085623.mp4` decoded successfully.
+
 ## 2026-05-16 - App Icon And Window Recording Visibility
 
 Scope verified:
@@ -8,8 +34,8 @@ Scope verified:
 - Removed the chroma-key background and produced `Assets\AppIcon.png` with transparent corners.
 - Generated `Assets\AppIcon.ico` with Windows icon sizes.
 - Configured the WPF project `ApplicationIcon` and main window `Icon`.
-- Fixed Window recording mode so it does not hide the Jieping main window during recording.
-- Kept Region and Full Screen modes eligible for main-window hiding to avoid self-capture.
+- Fixed Window and Region recording modes so they do not hide the Jieping main window during recording.
+- Kept only Full Screen mode eligible for main-window hiding to avoid self-capture.
 
 Commands run:
 

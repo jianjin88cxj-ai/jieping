@@ -151,9 +151,10 @@ The main window hides during countdown and active recording so it is not capture
 
 Behavior:
 
-- Main window hides only when the stop hotkey is registered.
-- Main window remains hidden during countdown, recording, paused, and stopping states.
-- Main window restores after countdown cancellation, successful finalization, or error.
+- Main window hides only for Full Screen recordings and only when the stop hotkey is registered.
+- Region and Window recordings keep the main window visible so users can stop from the UI.
+- When hidden for Full Screen, the main window remains hidden during countdown, recording, paused, and stopping states.
+- The main window restores after countdown cancellation, successful finalization, or error.
 - If the stop hotkey is unavailable, the window stays visible so the user can stop from the UI.
 
 ## 5. Audio

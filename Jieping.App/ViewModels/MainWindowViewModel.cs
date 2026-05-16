@@ -758,7 +758,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         try
         {
             State = RecordingState.Countdown;
-            SetRecordingShellSuppression(Target.Mode != RecordingMode.Window);
+            SetRecordingShellSuppression(Target.Mode == RecordingMode.FullScreen);
             await Task.Delay(TimeSpan.FromMilliseconds(250), countdownTokenSource.Token);
             for (var remaining = RecordingCountdownSeconds; remaining > 0; remaining--)
             {
