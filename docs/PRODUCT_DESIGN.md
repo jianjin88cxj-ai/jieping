@@ -122,6 +122,7 @@ The main window provides:
 - Start/end trim fields and Save Trimmed Copy action after completion.
 - GIF FPS, max-width, export, and Open GIF actions after completion.
 - In-session recording history with open file, open folder, and clear actions.
+- Mini recording mode for Region and Window recordings with elapsed time, Pause/Resume, and Stop/Cancel controls.
 
 ### Countdown
 
@@ -145,9 +146,19 @@ Global hotkeys:
 
 If a hotkey is unavailable, the app reports a non-fatal status message and keeps normal UI controls usable.
 
+### Mini Recording Mode
+
+Region and Window recordings switch the main window into a compact always-on-top control bar during countdown and active recording.
+
+Behavior:
+
+- Mini mode keeps the elapsed timer, state, target summary, Pause/Resume, and Stop/Cancel controls visible.
+- The full desktop tool layout is restored after stop, countdown cancellation, finalization, or error.
+- Full Screen recording still uses main-window hiding when the stop hotkey is available, because any visible mini window would be captured in the full-screen video.
+
 ### Main Window Auto-Hide
 
-The main window hides during countdown and active recording so it is not captured by Region or Full Screen modes.
+The main window hides during countdown and active recording only when Full Screen mode needs to avoid recording Jieping itself.
 
 Behavior:
 

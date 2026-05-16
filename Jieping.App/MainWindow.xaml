@@ -149,7 +149,8 @@
         </Style>
     </Window.Resources>
 
-    <Grid Background="{StaticResource PageBackgroundBrush}">
+    <Grid x:Name="RootLayout" Background="{StaticResource PageBackgroundBrush}">
+    <Grid x:Name="FullLayout" Background="{StaticResource PageBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="86" />
             <RowDefinition Height="*" />
@@ -500,5 +501,68 @@
                 </StackPanel>
             </Grid>
         </Border>
+    </Grid>
+
+    <Border x:Name="MiniLayout"
+            Visibility="Collapsed"
+            Background="{StaticResource PanelBrush}"
+            BorderBrush="{StaticResource BorderBrushSoft}"
+            BorderThickness="1"
+            CornerRadius="8"
+            Padding="14">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="Jieping"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}"
+                               VerticalAlignment="Center" />
+                    <Border Background="#EAF2FF"
+                            BorderBrush="#BFD2FF"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Padding="8,3"
+                            Margin="10,0,0,0">
+                        <TextBlock Text="{Binding StateLabel}"
+                                   Foreground="{StaticResource AccentDarkBrush}"
+                                   FontWeight="SemiBold" />
+                    </Border>
+                </StackPanel>
+                <TextBlock Text="{Binding TargetSummary}"
+                           Foreground="{StaticResource TextSecondaryBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,8,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Margin="18,0,0,0">
+                <Border Background="{StaticResource PanelAltBrush}"
+                        BorderBrush="{StaticResource BorderBrushSoft}"
+                        BorderThickness="1"
+                        CornerRadius="6"
+                        Padding="12,8"
+                        Margin="0,0,10,0">
+                    <TextBlock Text="{Binding ElapsedTime}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource TextPrimaryBrush}" />
+                </Border>
+                <Button Content="{Binding PauseResumeLabel}"
+                        Command="{Binding PauseResumeCommand}"
+                        MinWidth="84" />
+                <Button Content="{Binding StopRecordingLabel}"
+                        Command="{Binding StopRecordingCommand}"
+                        Style="{StaticResource DangerButton}"
+                        MinWidth="84"
+                        Margin="0" />
+            </StackPanel>
+        </Grid>
+    </Border>
     </Grid>
 </Window>

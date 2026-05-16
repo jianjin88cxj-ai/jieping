@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using Jieping.App.Dialogs;
+using Jieping.App.Models;
 using Jieping.App.Overlays;
 using Jieping.App.Services;
 using Jieping.App.ViewModels;
@@ -23,6 +24,11 @@ public partial class MainWindow : Window
     private HwndSource? _source;
     private readonly HashSet<int> _registeredHotkeyIds = [];
     private MainWindowViewModel? _viewModel;
+    private bool _isMiniMode;
+    private double _normalLeft;
+    private double _normalTop;
+    private double _normalWidth;
+    private double _normalHeight;
 
     public MainWindow()
     {
@@ -35,6 +41,7 @@ public partial class MainWindow : Window
             new FfmpegVideoRecorderService(),
             windowEnumeration: windowEnumerationService);
         _viewModel.RecordingShellSuppressionRequested += OnRecordingShellSuppressionRequested;
+        _viewModel.PropertyChanged += OnViewModelPropertyChanged;
         DataContext = _viewModel;
     }
 
@@ -51,6 +58,7 @@ public partial class MainWindow : Window
         if (_viewModel is not null)
         {
             _viewModel.RecordingShellSuppressionRequested -= OnRecordingShellSuppressionRequested;
+            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
 
         UnregisterGlobalHotkeys();
@@ -88,6 +96,8 @@ public partial class MainWindow : Window
             return;
         }
 
+        RestoreFullShell();
+
         if (!IsVisible)
         {
             Show();
@@ -99,6 +109,84 @@ public partial class MainWindow : Window
         }
 
         Activate();
+    }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(MainWindowViewModel.State) or nameof(MainWindowViewModel.SelectedMode))
+        {
+            ApplyRecordingShellMode();
+        }
+    }
+
+    private void ApplyRecordingShellMode()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        if (ShouldUseMiniMode(_viewModel))
+        {
+            EnterMiniMode();
+            return;
+        }
+
+        RestoreFullShell();
+    }
+
+    private static bool ShouldUseMiniMode(MainWindowViewModel viewModel)
+    {
+        return viewModel.SelectedMode != RecordingMode.FullScreen &&
+               viewModel.State is RecordingState.Countdown or RecordingState.Recording or RecordingState.Paused or RecordingState.Stopping;
+    }
+
+    private void EnterMiniMode()
+    {
+        if (_isMiniMode)
+        {
+            return;
+        }
+
+        _normalLeft = Left;
+        _normalTop = Top;
+        _normalWidth = Width;
+        _normalHeight = Height;
+
+        FullLayout.Visibility = Visibility.Collapsed;
+        MiniLayout.Visibility = Visibility.Visible;
+        MinWidth = 560;
+        MinHeight = 120;
+        Width = 560;
+        Height = 120;
+        Topmost = true;
+        ResizeMode = ResizeMode.NoResize;
+
+        var area = SystemParameters.WorkArea;
+        Left = Math.Max(area.Left, area.Right - Width - 24);
+        Top = Math.Max(area.Top, area.Bottom - Height - 24);
+        _isMiniMode = true;
+        Activate();
+    }
+
+    private void RestoreFullShell()
+    {
+        if (!_isMiniMode)
+        {
+            return;
+        }
+
+        MiniLayout.Visibility = Visibility.Collapsed;
+        FullLayout.Visibility = Visibility.Visible;
+        Topmost = false;
+        ResizeMode = ResizeMode.CanMinimize;
+        MinWidth = 1080;
+        MinHeight = 720;
+        Width = _normalWidth > 0 ? _normalWidth : 1080;
+        Height = _normalHeight > 0 ? _normalHeight : 720;
+        Left = _normalLeft;
+        Top = _normalTop;
+        _isMiniMode = false;
     }
 
     private void RegisterGlobalHotkeys()

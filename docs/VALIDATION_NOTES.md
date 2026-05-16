@@ -1,5 +1,33 @@
 # Validation Notes
 
+## 2026-05-16 - Mini Recording Mode
+
+Scope verified:
+
+- Added a compact mini recording shell for Region and Window recordings.
+- Mini mode shows target summary, state, elapsed time, Pause/Resume, and Stop/Cancel.
+- The full main window layout is saved before mini mode and restored after Stop, cancellation, finalization, or error.
+- Full Screen keeps the existing hide behavior to avoid capturing the app itself.
+
+Commands run:
+
+```powershell
+dotnet build .\Jieping.slnx
+```
+
+Real UI smoke:
+
+- Launched the WPF app.
+- Selected Region mode and dragged a real screen region.
+- Started recording and confirmed the window changed from `1080 x 720` to `560 x 120`.
+- Clicked Stop from mini mode and confirmed the window restored to `1080 x 720`.
+- Verified output `C:\Users\Administrator\Videos\Jieping\Recording_2026-05-16_090330.mp4` with `ffprobe` and `ffmpeg -v error -i <mp4> -f null -`.
+
+Result:
+
+- Build succeeded with 0 warnings and 0 errors.
+- Mini mode UI Region recording smoke passed.
+
 ## 2026-05-16 - Region Recording Real UI Regression
 
 Scope verified:

@@ -81,6 +81,7 @@ Jieping stores recent recording history in `%LOCALAPPDATA%\Jieping\recording-his
 - FFmpeg-backed H.264 MP4 output.
 - Optional system audio and microphone recording.
 - Global hotkeys, countdown, pause/resume, cursor capture, click highlight, and watermark.
+- Mini recording control mode during Region and Window recordings.
 - Trimmed MP4 copies, GIF export, and in-session recording history.
 - Persistent local recording history.
 - Settings language selector for English and Chinese UI labels.
