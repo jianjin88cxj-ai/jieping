@@ -61,9 +61,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private string _updateStatusMessage = "Update check not configured.";
     private string? _downloadedUpdatePackagePath;
     private string _diagnosticsStatusMessage = "Crash reports are disabled.";
+    private string _recordingPerformanceMessage = string.Empty;
     private UpdateCheckResult? _lastUpdateCheckResult;
+    private RecordingPerformanceSnapshot? _lastRecordingPerformance;
     private CancellationTokenSource? _countdownTokenSource;
     private bool _isRecordingShellSuppressed;
+    private readonly Dispatcher _dispatcher;
 
     public MainWindowViewModel(
         Func<CaptureRegion?>? selectRegion = null,
@@ -89,6 +92,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _recordingHistoryStore = recordingHistoryStore ?? new JsonRecordingHistoryStore();
         _displayBounds = displayBounds ?? new DisplayBoundsService();
         _windowEnumeration = windowEnumeration ?? new Win32WindowEnumerationService();
+        _dispatcher = Dispatcher.CurrentDispatcher;
+        _videoRecorder.PerformanceUpdated += OnRecorderPerformanceUpdated;
         _elapsedTimer = new DispatcherTimer
         {
             Interval = TimeSpan.FromSeconds(1)
@@ -556,6 +561,12 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         private set => SetField(ref _statusMessage, value);
     }
 
+    public string RecordingPerformanceMessage
+    {
+        get => _recordingPerformanceMessage;
+        private set => SetField(ref _recordingPerformanceMessage, value);
+    }
+
     public string? LastOutputPath
     {
         get => _lastOutputPath;
@@ -833,6 +844,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         try
         {
             State = RecordingState.Countdown;
+            _lastRecordingPerformance = null;
+            RecordingPerformanceMessage = string.Empty;
             SetRecordingShellSuppression(Target.Mode == RecordingMode.FullScreen);
             await Task.Delay(TimeSpan.FromMilliseconds(250), countdownTokenSource.Token);
             for (var remaining = RecordingCountdownSeconds; remaining > 0; remaining--)
@@ -1084,6 +1097,40 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    private void OnRecorderPerformanceUpdated(object? sender, RecordingPerformanceSnapshot snapshot)
+    {
+        if (!_dispatcher.CheckAccess())
+        {
+            _dispatcher.BeginInvoke(() => OnRecorderPerformanceUpdated(sender, snapshot));
+            return;
+        }
+
+        _lastRecordingPerformance = snapshot;
+        RefreshRecordingPerformanceMessage();
+    }
+
+    private void RefreshRecordingPerformanceMessage()
+    {
+        if (_lastRecordingPerformance is not { } snapshot)
+        {
+            RecordingPerformanceMessage = string.Empty;
+            return;
+        }
+
+        var isPerformanceLow = snapshot.ActualCaptureFrameRate < snapshot.TargetFrameRate * 0.85 || snapshot.DuplicateFrames > 0;
+        RecordingPerformanceMessage = isPerformanceLow
+            ? string.Format(
+                CultureInfo.CurrentCulture,
+                Text("RecordingPerformanceLow"),
+                snapshot.ActualCaptureFrameRate,
+                snapshot.TargetFrameRate)
+            : string.Format(
+                CultureInfo.CurrentCulture,
+                Text("RecordingPerformanceNormal"),
+                snapshot.ActualCaptureFrameRate,
+                snapshot.TargetFrameRate);
+    }
+
     private async Task PauseOrResumeRecordingAsync()
     {
         try
@@ -1206,6 +1253,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         OnPropertyChanged(nameof(StopRecordingLabel));
         OnPropertyChanged(nameof(TargetSummary));
         RefreshRecordingHistoryDisplay();
+        RefreshRecordingPerformanceMessage();
 
         if (StatusMessage is "Select a recording target to begin." or "请选择录制目标后开始。")
         {
@@ -1806,6 +1854,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["RecordingFinalized"] = "Recording finalized.",
                 ["RecordingPaused"] = "Recording paused.",
                 ["RecordingResumed"] = "Recording resumed.",
+                ["RecordingPerformanceNormal"] = "Actual capture: {0:0.0}/{1} FPS.",
+                ["RecordingPerformanceLow"] = "Actual capture: {0:0.0}/{1} FPS. Performance is low; timing is preserved with duplicate frames.",
                 ["CheckingForUpdates"] = "Checking for updates...",
                 ["NotProvided"] = "not provided",
                 ["UpdateAvailableSummary"] = "Version {0} is available. SHA256: {1}",
@@ -1955,6 +2005,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["RecordingFinalized"] = "录制已完成。",
                 ["RecordingPaused"] = "录制已暂停。",
                 ["RecordingResumed"] = "录制已继续。",
+                ["RecordingPerformanceNormal"] = "实际采集：{0:0.0}/{1} FPS。",
+                ["RecordingPerformanceLow"] = "实际采集：{0:0.0}/{1} FPS。性能不足，已用重复帧保持真实时长。",
                 ["CheckingForUpdates"] = "正在检查更新...",
                 ["NotProvided"] = "未提供",
                 ["UpdateAvailableSummary"] = "发现新版本 {0}。SHA256：{1}",

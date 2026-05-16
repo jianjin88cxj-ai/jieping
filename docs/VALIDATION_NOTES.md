@@ -1457,3 +1457,26 @@ Result:
 
 - Build succeeded with 0 warnings and 0 errors.
 - Smoke verified Chinese display text for preset, quality, bitrate, display, recording history details, update status, and window picker dialog text.
+
+## 2026-05-16 - Fullscreen Recording Timing Fix
+
+Scope verified:
+
+- Raw frame writing now preserves real recording duration by duplicating the latest captured frame when capture falls behind the target FPS.
+- Pause duration is excluded from the recording timing clock.
+- `FfmpegVideoRecorderService` publishes recording performance snapshots with target FPS, actual capture FPS, output FPS, and duplicate-frame count.
+- Main window and mini mode display actual capture FPS; low capture performance shows a warning that timing is being preserved with duplicate frames.
+
+Commands run:
+
+```powershell
+dotnet build .\Jieping.slnx
+dotnet run --project $env:TEMP\jieping-timing-smoke\TimingSmoke.csproj
+ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 <recorded mp4>
+```
+
+Result:
+
+- Build succeeded with 0 warnings and 0 errors.
+- Region timing smoke: wall time 3.063s, MP4 duration 3.033s, actual capture 30.1/30 FPS, duplicate frames 0.
+- Fullscreen timing smoke on primary display 2560 x 1440: wall time 3.178s, MP4 duration 3.033s, actual capture 27.2/30 FPS, duplicate frames 3.

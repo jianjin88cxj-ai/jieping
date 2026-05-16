@@ -41,6 +41,7 @@ Phase 4 post-processing has started:
 - Watermark option is implemented and recording-smoke-tested.
 - Recording history is implemented and view-model-smoke-tested.
 - English and Chinese language selection is implemented across main window labels, option lists, dialogs, generated history details, update status messages, and crash prompts.
+- Recording timing preserves real elapsed duration when capture performance falls below target FPS, and the UI reports actual capture FPS.
 - The main window has been redesigned as a fixed-size professional desktop tool layout with grouped recording controls and settings cards.
 - Custom application icon is implemented for the executable and main window.
 
@@ -214,6 +215,13 @@ Frame rates:
 - 15 FPS.
 - 30 FPS.
 - 60 FPS.
+
+Timing behavior:
+
+- The recorder writes raw frames to FFmpeg at the selected output FPS.
+- If desktop capture is slower than the selected FPS, the latest captured frame is duplicated so playback duration still matches real recording duration.
+- Pause duration is excluded from the recording timeline.
+- The UI reports actual capture FPS during recording and warns when performance is below the selected FPS.
 
 Recording presets:
 

@@ -274,6 +274,11 @@
                             <TextBlock Text="{Binding StatusMessage}"
                                        Foreground="{StaticResource TextSecondaryBrush}"
                                        MaxHeight="56" />
+                            <TextBlock Text="{Binding RecordingPerformanceMessage}"
+                                       Foreground="{StaticResource DangerBrush}"
+                                       FontWeight="SemiBold"
+                                       Margin="0,8,0,0"
+                                       MaxHeight="42" />
                             <TextBlock Text="{Binding LastOutputPath, TargetNullValue=''}"
                                        Foreground="{StaticResource TextMutedBrush}"
                                        TextWrapping="Wrap"
@@ -537,6 +542,11 @@
                            Foreground="{StaticResource TextSecondaryBrush}"
                            TextTrimming="CharacterEllipsis"
                            Margin="0,8,0,0" />
+                <TextBlock Text="{Binding RecordingPerformanceMessage}"
+                           Foreground="{StaticResource DangerBrush}"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="0,5,0,0" />
             </StackPanel>
             <StackPanel Grid.Column="1"
                         Orientation="Horizontal"

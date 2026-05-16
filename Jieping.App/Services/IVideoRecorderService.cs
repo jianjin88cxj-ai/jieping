@@ -4,6 +4,8 @@ namespace Jieping.App.Services;
 
 public interface IVideoRecorderService
 {
+    event EventHandler<RecordingPerformanceSnapshot>? PerformanceUpdated;
+
     bool IsRecording { get; }
 
     Task<VideoRecorderSession> StartAsync(

@@ -40,6 +40,8 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
         }
     }
 
+    public event EventHandler<RecordingPerformanceSnapshot>? PerformanceUpdated;
+
     public Task<VideoRecorderSession> StartAsync(
         VideoRecorderStartRequest request,
         CancellationToken cancellationToken = default)
@@ -684,19 +686,20 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
         }
     }
 
-    private static Task PumpFramesAsync(RecorderRun run)
+    private Task PumpFramesAsync(RecorderRun run)
     {
         return run.Region is null
             ? PumpSyntheticFramesAsync(run)
             : PumpRegionFramesAsync(run);
     }
 
-    private static async Task PumpRegionFramesAsync(RecorderRun run)
+    private async Task PumpRegionFramesAsync(RecorderRun run)
     {
         var initialRegion = run.Region
             ?? throw new VideoRecorderException("Region capture requires a selected recording region.");
         var frame = new byte[run.Width * run.Height * 4];
-        var frameInterval = TimeSpan.FromSeconds(1d / run.FrameRate);
+        var timing = new FrameTimingTracker(run.FrameRate);
+        var stats = new RecordingPerformanceTracker(run.FrameRate, OnPerformanceUpdated);
 
         using var bitmap = new Bitmap(run.Width, run.Height, PixelFormat.Format32bppArgb);
         using var graphics = Graphics.FromImage(bitmap);
@@ -706,7 +709,13 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
         {
             while (!run.StopTokenSource.IsCancellationRequested)
             {
-                await run.PauseController.WaitWhilePausedAsync(run.StopTokenSource.Token).ConfigureAwait(false);
+                var pausedDuration = await run.PauseController.WaitWhilePausedAsync(run.StopTokenSource.Token).ConfigureAwait(false);
+                if (pausedDuration > TimeSpan.Zero)
+                {
+                    timing.ExcludePausedDuration(pausedDuration);
+                    stats.ResetWindow();
+                }
+
                 var frameRegion = ResolveFrameRegion(run, initialRegion);
                 CaptureRegionFrame(
                     frameRegion,
@@ -718,8 +727,15 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
                     clickHighlighter,
                     run.IncludeWatermark,
                     run.WatermarkText);
-                await WriteFrameAsync(run, frame).ConfigureAwait(false);
-                await Task.Delay(frameInterval, run.StopTokenSource.Token).ConfigureAwait(false);
+                stats.RecordCapture();
+                var framesToWrite = timing.GetFramesToWrite();
+                for (var index = 0; index < framesToWrite; index++)
+                {
+                    await WriteFrameAsync(run, frame).ConfigureAwait(false);
+                }
+
+                stats.RecordOutputFrames(framesToWrite);
+                await DelayUntilNextFrameAsync(run, timing).ConfigureAwait(false);
             }
         }
         finally
@@ -927,26 +943,48 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
         graphics.TextRenderingHint = previousTextRendering;
     }
 
-    private static async Task PumpSyntheticFramesAsync(RecorderRun run)
+    private async Task PumpSyntheticFramesAsync(RecorderRun run)
     {
         var frame = new byte[run.Width * run.Height * 4];
-        var frameInterval = TimeSpan.FromSeconds(1d / run.FrameRate);
+        var timing = new FrameTimingTracker(run.FrameRate);
+        var stats = new RecordingPerformanceTracker(run.FrameRate, OnPerformanceUpdated);
         var frameIndex = 0;
 
         try
         {
             while (!run.StopTokenSource.IsCancellationRequested)
             {
-                await run.PauseController.WaitWhilePausedAsync(run.StopTokenSource.Token).ConfigureAwait(false);
+                var pausedDuration = await run.PauseController.WaitWhilePausedAsync(run.StopTokenSource.Token).ConfigureAwait(false);
+                if (pausedDuration > TimeSpan.Zero)
+                {
+                    timing.ExcludePausedDuration(pausedDuration);
+                    stats.ResetWindow();
+                }
+
                 FillSyntheticFrame(frame, run.Width, run.Height, frameIndex++);
-                await WriteFrameAsync(run, frame).ConfigureAwait(false);
-                await Task.Delay(frameInterval, run.StopTokenSource.Token).ConfigureAwait(false);
+                stats.RecordCapture();
+                var framesToWrite = timing.GetFramesToWrite();
+                for (var index = 0; index < framesToWrite; index++)
+                {
+                    await WriteFrameAsync(run, frame).ConfigureAwait(false);
+                }
+
+                stats.RecordOutputFrames(framesToWrite);
+                await DelayUntilNextFrameAsync(run, timing).ConfigureAwait(false);
             }
         }
         finally
         {
             run.Process.StandardInput.Close();
         }
+    }
+
+    private static Task DelayUntilNextFrameAsync(RecorderRun run, FrameTimingTracker timing)
+    {
+        var delay = timing.GetDelayUntilNextFrame();
+        return delay <= TimeSpan.Zero
+            ? Task.CompletedTask
+            : Task.Delay(delay, run.StopTokenSource.Token);
     }
 
     private static async Task WriteFrameAsync(RecorderRun run, byte[] frame)
@@ -975,6 +1013,11 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
                 frame[offset++] = 255;
             }
         }
+    }
+
+    private void OnPerformanceUpdated(RecordingPerformanceSnapshot snapshot)
+    {
+        PerformanceUpdated?.Invoke(this, snapshot);
     }
 
     private static async Task<string> ReadStandardErrorAsync(StreamReader reader)
@@ -1127,6 +1170,96 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
         Action StopRecording,
         Action DisposeCapture);
 
+    private sealed class FrameTimingTracker
+    {
+        private readonly Stopwatch _clock = Stopwatch.StartNew();
+        private readonly int _targetFrameRate;
+        private TimeSpan _pausedDuration = TimeSpan.Zero;
+        private int _framesWritten;
+
+        public FrameTimingTracker(int targetFrameRate)
+        {
+            _targetFrameRate = targetFrameRate;
+        }
+
+        public void ExcludePausedDuration(TimeSpan pausedDuration)
+        {
+            _pausedDuration += pausedDuration;
+        }
+
+        public int GetFramesToWrite()
+        {
+            var activeElapsed = _clock.Elapsed - _pausedDuration;
+            var expectedFrames = Math.Max(
+                _framesWritten + 1,
+                (int)Math.Floor(activeElapsed.TotalSeconds * _targetFrameRate) + 1);
+            var framesToWrite = expectedFrames - _framesWritten;
+            _framesWritten = expectedFrames;
+            return framesToWrite;
+        }
+
+        public TimeSpan GetDelayUntilNextFrame()
+        {
+            var activeElapsed = _clock.Elapsed - _pausedDuration;
+            var nextFrameTime = TimeSpan.FromSeconds(_framesWritten / (double)_targetFrameRate);
+            return nextFrameTime - activeElapsed;
+        }
+    }
+
+    private sealed class RecordingPerformanceTracker
+    {
+        private readonly int _targetFrameRate;
+        private readonly Action<RecordingPerformanceSnapshot> _publish;
+        private readonly Stopwatch _window = Stopwatch.StartNew();
+        private int _capturedFrames;
+        private int _outputFrames;
+        private int _duplicateFrames;
+
+        public RecordingPerformanceTracker(
+            int targetFrameRate,
+            Action<RecordingPerformanceSnapshot> publish)
+        {
+            _targetFrameRate = targetFrameRate;
+            _publish = publish;
+        }
+
+        public void RecordCapture()
+        {
+            _capturedFrames++;
+        }
+
+        public void RecordOutputFrames(int framesWritten)
+        {
+            _outputFrames += framesWritten;
+            _duplicateFrames += Math.Max(0, framesWritten - 1);
+            PublishIfDue();
+        }
+
+        public void ResetWindow()
+        {
+            _window.Restart();
+            _capturedFrames = 0;
+            _outputFrames = 0;
+            _duplicateFrames = 0;
+        }
+
+        private void PublishIfDue()
+        {
+            if (_window.Elapsed < TimeSpan.FromSeconds(1))
+            {
+                return;
+            }
+
+            var seconds = Math.Max(0.001, _window.Elapsed.TotalSeconds);
+            _publish(new RecordingPerformanceSnapshot(
+                _targetFrameRate,
+                _capturedFrames / seconds,
+                _outputFrames / seconds,
+                _duplicateFrames));
+            ResetWindow();
+        }
+    }
+
     private sealed class GraphicsHdcScope : IDisposable
     {
         private readonly Graphics _graphics;
@@ -1260,7 +1393,7 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
             }
         }
 
-        public Task WaitWhilePausedAsync(CancellationToken cancellationToken)
+        public async Task<TimeSpan> WaitWhilePausedAsync(CancellationToken cancellationToken)
         {
             Task resumeTask;
             lock (_gate)
@@ -1268,7 +1401,14 @@ public sealed class FfmpegVideoRecorderService : IVideoRecorderService
                 resumeTask = _resumeSignal.Task;
             }
 
-            return resumeTask.WaitAsync(cancellationToken);
+            if (resumeTask.IsCompleted)
+            {
+                return TimeSpan.Zero;
+            }
+
+            var pausedAt = Stopwatch.GetTimestamp();
+            await resumeTask.WaitAsync(cancellationToken).ConfigureAwait(false);
+            return Stopwatch.GetElapsedTime(pausedAt);
         }
 
         private static TaskCompletionSource CreateCompletedSignal()
