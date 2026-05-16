@@ -15,7 +15,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <TextBlock Text="Select a visible window" FontSize="18" FontWeight="SemiBold" />
+        <TextBlock x:Name="TitleText" Text="Select a visible window" FontSize="18" FontWeight="SemiBold" />
 
         <ListView x:Name="WindowList"
                   Grid.Row="1"
@@ -23,12 +23,12 @@
                   MouseDoubleClick="OnWindowListDoubleClick">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Title}" Width="340" />
-                    <GridViewColumn Header="Process" DisplayMemberBinding="{Binding ProcessName}" Width="120" />
-                    <GridViewColumn Header="Size" Width="100">
+                    <GridViewColumn x:Name="TitleColumn" Header="Title" DisplayMemberBinding="{Binding Title}" Width="340" />
+                    <GridViewColumn x:Name="ProcessColumn" Header="Process" DisplayMemberBinding="{Binding ProcessName}" Width="120" />
+                    <GridViewColumn x:Name="SizeColumn" Header="Size" Width="100">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding Bounds.Description}" />
+                                <TextBlock Text="{Binding SizeDisplay}" />
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
@@ -37,9 +37,9 @@
         </ListView>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Refresh" MinWidth="86" Margin="0,0,8,0" Click="OnRefreshClick" />
-            <Button Content="Cancel" MinWidth="86" Margin="0,0,8,0" IsCancel="True" />
-            <Button Content="Select" MinWidth="86" IsDefault="True" Click="OnSelectClick" />
+            <Button x:Name="RefreshButton" Content="Refresh" MinWidth="86" Margin="0,0,8,0" Click="OnRefreshClick" />
+            <Button x:Name="CancelButton" Content="Cancel" MinWidth="86" Margin="0,0,8,0" IsCancel="True" />
+            <Button x:Name="SelectButton" Content="Select" MinWidth="86" IsDefault="True" Click="OnSelectClick" />
         </StackPanel>
     </Grid>
 </Window>

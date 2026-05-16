@@ -40,7 +40,7 @@ Phase 4 post-processing has started:
 - Mouse click highlight is implemented and recording-smoke-tested.
 - Watermark option is implemented and recording-smoke-tested.
 - Recording history is implemented and view-model-smoke-tested.
-- English and Chinese language selection is implemented and view-model-smoke-tested.
+- English and Chinese language selection is implemented across main window labels, option lists, dialogs, generated history details, update status messages, and crash prompts.
 - The main window has been redesigned as a fixed-size professional desktop tool layout with grouped recording controls and settings cards.
 - Custom application icon is implemented for the executable and main window.
 

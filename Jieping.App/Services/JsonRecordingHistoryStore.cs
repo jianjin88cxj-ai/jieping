@@ -56,9 +56,9 @@ public sealed class JsonRecordingHistoryStore : IRecordingHistoryStore
                 .Select(item => new RecordingHistoryRecord
                 {
                     Path = item.Path,
-                    ArtifactType = item.ArtifactType,
+                    ArtifactType = item.RawArtifactType,
                     CreatedAt = item.CreatedAt,
-                    Details = item.Details
+                    Details = item.RawDetails
                 })
                 .ToList()
         };

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -34,7 +35,7 @@ public partial class App : Application
         if (!string.IsNullOrWhiteSpace(reportPath))
         {
             MessageBox.Show(
-                $"Jieping hit an unexpected error. A local crash report was saved to:\n{reportPath}",
+                FormatCrashMessage(reportPath),
                 "Jieping",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
@@ -56,5 +57,12 @@ public partial class App : Application
     {
         _crashReportService.WriteReport(e.Exception, "UnobservedTaskException");
         e.SetObserved();
+    }
+
+    private static string FormatCrashMessage(string reportPath)
+    {
+        return CultureInfo.CurrentUICulture.Name.Equals("zh-CN", StringComparison.OrdinalIgnoreCase)
+            ? $"Jieping 遇到意外错误。本地崩溃报告已保存到：\n{reportPath}"
+            : $"Jieping hit an unexpected error. A local crash report was saved to:\n{reportPath}";
     }
 }

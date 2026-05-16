@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -71,7 +72,9 @@ public partial class MainWindow : Window
     {
         using var dialog = new WinForms.FolderBrowserDialog
         {
-            Description = "Choose where Jieping saves recordings",
+            Description = CultureInfo.CurrentUICulture.Name.Equals("zh-CN", StringComparison.OrdinalIgnoreCase)
+                ? "选择 Jieping 保存录制文件的位置"
+                : "Choose where Jieping saves recordings",
             UseDescriptionForTitle = true,
             SelectedPath = currentDirectory,
             ShowNewFolderButton = true

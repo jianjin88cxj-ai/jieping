@@ -1433,3 +1433,27 @@ ViewModel smoke:
 - Verified update check enables package download.
 - Verified successful download sets `DownloadedUpdatePackagePath` and enables opening the downloaded package.
 - Verified a simulated SHA256 mismatch reports an error and leaves no downloaded package path.
+
+## 2026-05-16 - Bilingual UI Coverage Pass
+
+Scope verified:
+
+- Video setting option lists now localize: preset, quality, bitrate, and display selector.
+- Switching language updates `CurrentCulture` and `CurrentUICulture`, so new dialogs follow the selected language.
+- Window picker dialog now localizes title, heading, list headers, action buttons, and size text.
+- Folder browser description now follows the selected language.
+- Recording history displays generated MP4/GIF/trim details in the current language while preserving raw stored values.
+- Update check status summaries are formatted in the ViewModel with localized text.
+- Crash message box text now follows the current UI culture.
+
+Commands run:
+
+```powershell
+dotnet build .\Jieping.slnx
+dotnet run --project $env:TEMP\jieping-localized-options-smoke\LocalizedOptionsSmoke.csproj
+```
+
+Result:
+
+- Build succeeded with 0 warnings and 0 errors.
+- Smoke verified Chinese display text for preset, quality, bitrate, display, recording history details, update status, and window picker dialog text.

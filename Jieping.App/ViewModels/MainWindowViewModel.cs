@@ -46,6 +46,10 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
     private RecordingPresetInfo? _selectedRecordingPreset;
     private VideoBitrateOption? _selectedVideoBitrate;
     private LanguageOption? _selectedLanguage;
+    private IReadOnlyList<LocalizedOption<RecordingPresetInfo>> _recordingPresetOptions = [];
+    private IReadOnlyList<LocalizedOption<string>> _qualityDisplayOptions = [];
+    private IReadOnlyList<LocalizedOption<VideoBitrateOption>> _videoBitrateDisplayOptions = [];
+    private IReadOnlyList<LocalizedOption<DisplayInfo>> _displayOptions = [];
     private bool _applyingPreset;
     private bool _isPostProcessing;
     private string _trimStartSeconds = "0";
@@ -112,6 +116,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         _selectedLanguage = LanguageOptions.FirstOrDefault(language => language.Code == _configuration.LanguageCode)
             ?? LanguageOptions.First(language => language.Code == DefaultLanguageCode);
         _configuration.LanguageCode = _selectedLanguage.Code;
+        ApplyLanguageCulture(_selectedLanguage.Code);
         _statusMessage = Text("SelectTargetToBegin");
         _updateStatusMessage = Text("UpdateCheckNotConfigured");
         _diagnosticsStatusMessage = Text("CrashReportsDisabled");
@@ -122,6 +127,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         SelectedVideoBitrate = VideoBitrateOptions.First(option => option.KilobitsPerSecond == _configuration.VideoBitrateKbps);
         Displays = _displayBounds.GetDisplays();
         SelectedDisplay = Displays.FirstOrDefault(display => display.IsPrimary) ?? Displays.FirstOrDefault();
+        RefreshLocalizedOptions();
         MicrophoneDevices = EnumerateMicrophoneDevices();
         SelectedMicrophoneDevice = MicrophoneDevices.FirstOrDefault();
         LoadRecordingHistory();
@@ -179,6 +185,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public IReadOnlyList<string> QualityOptions { get; } = ["Standard", "High"];
 
+    public IReadOnlyList<LocalizedOption<string>> QualityDisplayOptions => _qualityDisplayOptions;
+
     public IReadOnlyList<LanguageOption> LanguageOptions { get; } =
     [
         new LanguageOption("en-US", "English"),
@@ -187,9 +195,15 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     public IReadOnlyList<RecordingPresetInfo> RecordingPresets { get; }
 
+    public IReadOnlyList<LocalizedOption<RecordingPresetInfo>> RecordingPresetOptions => _recordingPresetOptions;
+
     public IReadOnlyList<VideoBitrateOption> VideoBitrateOptions { get; }
 
+    public IReadOnlyList<LocalizedOption<VideoBitrateOption>> VideoBitrateDisplayOptions => _videoBitrateDisplayOptions;
+
     public IReadOnlyList<DisplayInfo> Displays { get; }
+
+    public IReadOnlyList<LocalizedOption<DisplayInfo>> DisplayOptions => _displayOptions;
 
     public IReadOnlyList<MicrophoneDeviceInfo> MicrophoneDevices { get; }
 
@@ -204,6 +218,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             }
 
             _configuration.LanguageCode = value.Code;
+            ApplyLanguageCulture(value.Code);
             RefreshLocalizedProperties();
         }
     }
@@ -261,6 +276,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 _configuration.FrameRate = value;
                 OnPropertyChanged();
                 MarkPresetCustomIfNeeded();
+                OnPropertyChanged(nameof(SelectedRecordingPresetOption));
             }
         }
     }
@@ -275,6 +291,21 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 _configuration.Quality = value;
                 OnPropertyChanged();
                 MarkPresetCustomIfNeeded();
+                OnPropertyChanged(nameof(SelectedQualityOption));
+                OnPropertyChanged(nameof(SelectedRecordingPresetOption));
+            }
+        }
+    }
+
+    public LocalizedOption<string>? SelectedQualityOption
+    {
+        get => QualityDisplayOptions.FirstOrDefault(option => option.Value == Quality);
+        set
+        {
+            if (value is not null)
+            {
+                Quality = value.Value;
+                OnPropertyChanged();
             }
         }
     }
@@ -290,6 +321,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             }
 
             _configuration.RecordingPreset = value.Name;
+            OnPropertyChanged(nameof(SelectedRecordingPresetOption));
             if (value.IsCustom)
             {
                 return;
@@ -309,6 +341,19 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         }
     }
 
+    public LocalizedOption<RecordingPresetInfo>? SelectedRecordingPresetOption
+    {
+        get => RecordingPresetOptions.FirstOrDefault(option => option.Value == SelectedRecordingPreset);
+        set
+        {
+            if (value is not null)
+            {
+                SelectedRecordingPreset = value.Value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public VideoBitrateOption? SelectedVideoBitrate
     {
         get => _selectedVideoBitrate;
@@ -318,6 +363,21 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             {
                 _configuration.VideoBitrateKbps = value.KilobitsPerSecond;
                 MarkPresetCustomIfNeeded();
+                OnPropertyChanged(nameof(SelectedVideoBitrateOption));
+                OnPropertyChanged(nameof(SelectedRecordingPresetOption));
+            }
+        }
+    }
+
+    public LocalizedOption<VideoBitrateOption>? SelectedVideoBitrateOption
+    {
+        get => VideoBitrateDisplayOptions.FirstOrDefault(option => option.Value == SelectedVideoBitrate);
+        set
+        {
+            if (value is not null)
+            {
+                SelectedVideoBitrate = value.Value;
+                OnPropertyChanged();
             }
         }
     }
@@ -430,6 +490,21 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 Target = null;
                 State = RecordingState.Idle;
                 StatusMessage = Text("DisplayChangedSelectTarget");
+            }
+
+            OnPropertyChanged(nameof(SelectedDisplayOption));
+        }
+    }
+
+    public LocalizedOption<DisplayInfo>? SelectedDisplayOption
+    {
+        get => DisplayOptions.FirstOrDefault(option => option.Value == SelectedDisplay);
+        set
+        {
+            if (value is not null)
+            {
+                SelectedDisplay = value.Value;
+                OnPropertyChanged();
             }
         }
     }
@@ -898,8 +973,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
             return;
         }
 
-        if (!TryParseTrimSeconds(TrimStartSeconds, "trim start", out var trimStartSeconds) ||
-            !TryParseTrimSeconds(TrimEndSeconds, "trim end", out var trimEndSeconds))
+        if (!TryParseTrimSeconds(TrimStartSeconds, Text("TrimStartField"), out var trimStartSeconds) ||
+            !TryParseTrimSeconds(TrimEndSeconds, Text("TrimEndField"), out var trimEndSeconds))
         {
             return;
         }
@@ -994,7 +1069,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         try
         {
             LastOutputPath = await _videoRecorder.StopAsync();
-            AddHistoryItem(LastOutputPath, "MP4", $"{ModeLabel}, {FrameRate} FPS");
+            AddHistoryItem(LastOutputPath, "MP4", $"{SelectedMode}, {FrameRate} FPS");
             _activeSession = null;
             State = RecordingState.Completed;
             SetRecordingShellSuppression(false);
@@ -1123,12 +1198,14 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
 
     private void RefreshLocalizedProperties()
     {
+        RefreshLocalizedOptions();
         OnPropertyChanged("Item[]");
         OnPropertyChanged(nameof(ModeLabel));
         OnPropertyChanged(nameof(StateLabel));
         OnPropertyChanged(nameof(PauseResumeLabel));
         OnPropertyChanged(nameof(StopRecordingLabel));
         OnPropertyChanged(nameof(TargetSummary));
+        RefreshRecordingHistoryDisplay();
 
         if (StatusMessage is "Select a recording target to begin." or "请选择录制目标后开始。")
         {
@@ -1144,6 +1221,105 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         {
             DiagnosticsStatusMessage = Text("CrashReportsDisabled");
         }
+    }
+
+    private void RefreshRecordingHistoryDisplay()
+    {
+        if (RecordingHistory.Count == 0)
+        {
+            return;
+        }
+
+        var history = RecordingHistory.ToList();
+        RecordingHistory.Clear();
+        foreach (var item in history)
+        {
+            RecordingHistory.Add(item);
+        }
+    }
+
+    private static void ApplyLanguageCulture(string languageCode)
+    {
+        var culture = CultureInfo.GetCultureInfo(languageCode);
+        CultureInfo.CurrentCulture = culture;
+        CultureInfo.CurrentUICulture = culture;
+        CultureInfo.DefaultThreadCurrentCulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+    }
+
+    private void RefreshLocalizedOptions()
+    {
+        _recordingPresetOptions = RecordingPresets
+            .Select(preset => new LocalizedOption<RecordingPresetInfo>(preset, FormatRecordingPreset(preset)))
+            .ToList();
+        _qualityDisplayOptions = QualityOptions
+            .Select(quality => new LocalizedOption<string>(quality, Text(quality)))
+            .ToList();
+        _videoBitrateDisplayOptions = VideoBitrateOptions
+            .Select(option => new LocalizedOption<VideoBitrateOption>(option, FormatVideoBitrate(option)))
+            .ToList();
+        _displayOptions = Displays
+            .Select(display => new LocalizedOption<DisplayInfo>(display, FormatDisplay(display)))
+            .ToList();
+
+        OnPropertyChanged(nameof(RecordingPresetOptions));
+        OnPropertyChanged(nameof(SelectedRecordingPresetOption));
+        OnPropertyChanged(nameof(QualityDisplayOptions));
+        OnPropertyChanged(nameof(SelectedQualityOption));
+        OnPropertyChanged(nameof(VideoBitrateDisplayOptions));
+        OnPropertyChanged(nameof(SelectedVideoBitrateOption));
+        OnPropertyChanged(nameof(DisplayOptions));
+        OnPropertyChanged(nameof(SelectedDisplayOption));
+    }
+
+    private string FormatRecordingPreset(RecordingPresetInfo preset)
+    {
+        if (preset.IsCustom)
+        {
+            return Text("PresetCustom");
+        }
+
+        var name = Text($"Preset{preset.Name}");
+        var quality = Text(preset.Quality);
+        var bitrate = preset.VideoBitrateKbps is { } kilobitsPerSecond
+            ? string.Format(CultureInfo.CurrentCulture, Text("MbpsFormat"), kilobitsPerSecond / 1000)
+            : Text("AutoBitrate");
+        return string.Format(CultureInfo.CurrentCulture, Text("PresetFormat"), name, preset.FrameRate, quality, bitrate);
+    }
+
+    private string FormatVideoBitrate(VideoBitrateOption option)
+    {
+        return option.KilobitsPerSecond is { } kilobitsPerSecond
+            ? string.Format(CultureInfo.CurrentCulture, Text("MbpsFormat"), kilobitsPerSecond / 1000)
+            : Text("Auto");
+    }
+
+    private string FormatDisplay(DisplayInfo display)
+    {
+        var primarySuffix = display.IsPrimary ? Text("PrimarySuffix") : string.Empty;
+        return string.Format(
+            CultureInfo.CurrentCulture,
+            Text("DisplayFormat"),
+            display.Index + 1,
+            primarySuffix,
+            display.Bounds.Width,
+            display.Bounds.Height,
+            display.Bounds.X,
+            display.Bounds.Y);
+    }
+
+    private string FormatUpdateCheckResult(UpdateCheckResult result)
+    {
+        if (result.IsUpdateAvailable)
+        {
+            return string.Format(
+                CultureInfo.CurrentCulture,
+                Text("UpdateAvailableSummary"),
+                result.LatestVersion,
+                result.Sha256 ?? Text("NotProvided"));
+        }
+
+        return string.Format(CultureInfo.CurrentCulture, Text("UpToDateSummary"), result.CurrentVersion);
     }
 
     private void RefreshCommands()
@@ -1195,9 +1371,7 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 UpdateManifestLocation,
                 GetCurrentVersion());
             DownloadedUpdatePackagePath = null;
-            UpdateStatusMessage = _lastUpdateCheckResult.IsUpdateAvailable
-                ? $"{_lastUpdateCheckResult.Summary} SHA256: {_lastUpdateCheckResult.Sha256 ?? Text("NotProvided")}"
-                : _lastUpdateCheckResult.Summary;
+            UpdateStatusMessage = FormatUpdateCheckResult(_lastUpdateCheckResult);
             OnPropertyChanged(nameof(CanOpenUpdatePackage));
             OnPropertyChanged(nameof(CanDownloadUpdatePackage));
         }
@@ -1486,6 +1660,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
         ];
     }
 
+    public sealed record LocalizedOption<T>(T Value, string DisplayName);
+
     private void MarkPresetCustomIfNeeded()
     {
         if (_applyingPreset)
@@ -1557,6 +1733,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["TrimCopy"] = "Trim Copy",
                 ["StartSeconds"] = "Start seconds",
                 ["EndSeconds"] = "End seconds",
+                ["TrimStartField"] = "trim start",
+                ["TrimEndField"] = "trim end",
                 ["SaveTrimmedCopy"] = "Save Trimmed Copy",
                 ["GifExport"] = "GIF Export",
                 ["Fps"] = "FPS",
@@ -1630,6 +1808,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["RecordingResumed"] = "Recording resumed.",
                 ["CheckingForUpdates"] = "Checking for updates...",
                 ["NotProvided"] = "not provided",
+                ["UpdateAvailableSummary"] = "Version {0} is available. SHA256: {1}",
+                ["UpToDateSummary"] = "Jieping is up to date at version {0}.",
                 ["NoUpdatePackageToOpen"] = "No update package is available to open.",
                 ["NoUpdatePackageToDownload"] = "No update package is available to download.",
                 ["DownloadingUpdatePackage"] = "Downloading update package...",
@@ -1653,7 +1833,19 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["CouldNotOpenHistoryFile"] = "Could not open history file: {0}",
                 ["CouldNotOpenHistoryFolder"] = "Could not open history folder: {0}",
                 ["EnterValidSeconds"] = "Enter a valid {0} value in seconds.",
-                ["SecondsCannotBeNegative"] = "{0} cannot be negative."
+                ["SecondsCannotBeNegative"] = "{0} cannot be negative.",
+                ["PresetCompact"] = "Compact",
+                ["PresetBalanced"] = "Balanced",
+                ["PresetSmooth"] = "Smooth",
+                ["PresetCustom"] = "Custom",
+                ["Standard"] = "Standard",
+                ["High"] = "High",
+                ["Auto"] = "Auto",
+                ["AutoBitrate"] = "Auto bitrate",
+                ["MbpsFormat"] = "{0} Mbps",
+                ["PresetFormat"] = "{0}: {1} FPS, {2}, {3}",
+                ["PrimarySuffix"] = " (Primary)",
+                ["DisplayFormat"] = "Display {0}{1}: {2} x {3} at ({4}, {5})"
             },
             ["zh-CN"] = new Dictionary<string, string>(StringComparer.Ordinal)
             {
@@ -1690,6 +1882,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["TrimCopy"] = "裁剪副本",
                 ["StartSeconds"] = "开始秒数",
                 ["EndSeconds"] = "结束秒数",
+                ["TrimStartField"] = "开始时间",
+                ["TrimEndField"] = "结束时间",
                 ["SaveTrimmedCopy"] = "保存裁剪副本",
                 ["GifExport"] = "导出 GIF",
                 ["Fps"] = "FPS",
@@ -1763,6 +1957,8 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["RecordingResumed"] = "录制已继续。",
                 ["CheckingForUpdates"] = "正在检查更新...",
                 ["NotProvided"] = "未提供",
+                ["UpdateAvailableSummary"] = "发现新版本 {0}。SHA256：{1}",
+                ["UpToDateSummary"] = "Jieping 已是最新版本 {0}。",
                 ["NoUpdatePackageToOpen"] = "没有可打开的更新包。",
                 ["NoUpdatePackageToDownload"] = "没有可下载的更新包。",
                 ["DownloadingUpdatePackage"] = "正在下载更新包...",
@@ -1786,7 +1982,19 @@ public sealed class MainWindowViewModel : INotifyPropertyChanged
                 ["CouldNotOpenHistoryFile"] = "无法打开历史文件：{0}",
                 ["CouldNotOpenHistoryFolder"] = "无法打开历史文件夹：{0}",
                 ["EnterValidSeconds"] = "请输入有效的{0}秒数。",
-                ["SecondsCannotBeNegative"] = "{0}不能为负数。"
+                ["SecondsCannotBeNegative"] = "{0}不能为负数。",
+                ["PresetCompact"] = "紧凑",
+                ["PresetBalanced"] = "均衡",
+                ["PresetSmooth"] = "流畅",
+                ["PresetCustom"] = "自定义",
+                ["Standard"] = "标准",
+                ["High"] = "高",
+                ["Auto"] = "自动",
+                ["AutoBitrate"] = "自动码率",
+                ["MbpsFormat"] = "{0} Mbps",
+                ["PresetFormat"] = "{0}: {1} FPS，{2}，{3}",
+                ["PrimarySuffix"] = "（主屏）",
+                ["DisplayFormat"] = "显示器 {0}{1}: {2} x {3}，位置 ({4}, {5})"
             }
         };
 

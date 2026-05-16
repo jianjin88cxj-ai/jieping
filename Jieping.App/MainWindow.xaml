@@ -314,15 +314,15 @@
                             </Grid.RowDefinitions>
 
                             <TextBlock Text="{Binding [Preset]}" Style="{StaticResource FieldLabel}" />
-                            <ComboBox Grid.Column="1" Width="270" HorizontalAlignment="Left" ItemsSource="{Binding RecordingPresets}" SelectedItem="{Binding SelectedRecordingPreset}" DisplayMemberPath="DisplayName" IsEnabled="{Binding CanChangeTarget}" />
+                            <ComboBox Grid.Column="1" Width="270" HorizontalAlignment="Left" ItemsSource="{Binding RecordingPresetOptions}" SelectedItem="{Binding SelectedRecordingPresetOption}" DisplayMemberPath="DisplayName" IsEnabled="{Binding CanChangeTarget}" />
                             <TextBlock Grid.Row="1" Text="{Binding [FrameRate]}" Style="{StaticResource FieldLabel}" Margin="0,14,12,0" />
                             <ComboBox Grid.Row="1" Grid.Column="1" Width="150" HorizontalAlignment="Left" Margin="0,14,0,0" ItemsSource="{Binding FrameRateOptions}" SelectedItem="{Binding FrameRate}" IsEnabled="{Binding CanChangeTarget}" />
                             <TextBlock Grid.Row="2" Text="{Binding [Quality]}" Style="{StaticResource FieldLabel}" Margin="0,14,12,0" />
-                            <ComboBox Grid.Row="2" Grid.Column="1" Width="150" HorizontalAlignment="Left" Margin="0,14,0,0" ItemsSource="{Binding QualityOptions}" SelectedItem="{Binding Quality}" IsEnabled="{Binding CanChangeTarget}" />
+                            <ComboBox Grid.Row="2" Grid.Column="1" Width="150" HorizontalAlignment="Left" Margin="0,14,0,0" ItemsSource="{Binding QualityDisplayOptions}" SelectedItem="{Binding SelectedQualityOption}" DisplayMemberPath="DisplayName" IsEnabled="{Binding CanChangeTarget}" />
                             <TextBlock Grid.Row="3" Text="{Binding [Bitrate]}" Style="{StaticResource FieldLabel}" Margin="0,14,12,0" />
-                            <ComboBox Grid.Row="3" Grid.Column="1" Width="150" HorizontalAlignment="Left" Margin="0,14,0,0" ItemsSource="{Binding VideoBitrateOptions}" SelectedItem="{Binding SelectedVideoBitrate}" DisplayMemberPath="DisplayName" IsEnabled="{Binding CanChangeTarget}" />
+                            <ComboBox Grid.Row="3" Grid.Column="1" Width="150" HorizontalAlignment="Left" Margin="0,14,0,0" ItemsSource="{Binding VideoBitrateDisplayOptions}" SelectedItem="{Binding SelectedVideoBitrateOption}" DisplayMemberPath="DisplayName" IsEnabled="{Binding CanChangeTarget}" />
                             <TextBlock Grid.Row="4" Text="{Binding [Display]}" Style="{StaticResource FieldLabel}" Margin="0,14,12,0" />
-                            <ComboBox Grid.Row="4" Grid.Column="1" Width="320" HorizontalAlignment="Left" Margin="0,14,0,0" ItemsSource="{Binding Displays}" SelectedItem="{Binding SelectedDisplay}" DisplayMemberPath="DisplayName" IsEnabled="{Binding CanSelectDisplay}" />
+                            <ComboBox Grid.Row="4" Grid.Column="1" Width="320" HorizontalAlignment="Left" Margin="0,14,0,0" ItemsSource="{Binding DisplayOptions}" SelectedItem="{Binding SelectedDisplayOption}" DisplayMemberPath="DisplayName" IsEnabled="{Binding CanSelectDisplay}" />
                             <TextBlock Grid.Row="5" Text="{Binding [SaveTo]}" Style="{StaticResource FieldLabel}" Margin="0,16,12,0" />
                             <Grid Grid.Row="5" Grid.Column="1" Margin="0,14,0,0">
                                 <Grid.ColumnDefinitions>
