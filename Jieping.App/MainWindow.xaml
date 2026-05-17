@@ -278,7 +278,9 @@
                                        Foreground="{StaticResource DangerBrush}"
                                        FontWeight="SemiBold"
                                        Margin="0,8,0,0"
-                                       MaxHeight="42" />
+                                       TextWrapping="Wrap"
+                                       TextTrimming="None"
+                                       ToolTip="{Binding RecordingPerformanceMessage}" />
                             <TextBlock Text="{Binding LastOutputPath, TargetNullValue=''}"
                                        Foreground="{StaticResource TextMutedBrush}"
                                        TextWrapping="Wrap"
@@ -545,7 +547,9 @@
                 <TextBlock Text="{Binding RecordingPerformanceMessage}"
                            Foreground="{StaticResource DangerBrush}"
                            FontWeight="SemiBold"
+                           TextWrapping="NoWrap"
                            TextTrimming="CharacterEllipsis"
+                           ToolTip="{Binding RecordingPerformanceMessage}"
                            Margin="0,5,0,0" />
             </StackPanel>
             <StackPanel Grid.Column="1"
